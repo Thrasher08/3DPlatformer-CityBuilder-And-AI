@@ -11,34 +11,23 @@ public class PickUpHandler : MonoBehaviour
 
     public float throwForce = 300;
 
-    public GameObject[] itemDrop;
+    GameObject heldItem;
 
     public float pickUpRange = 5;
-    public LayerMask isPlayer;
+    public LayerMask isCarry;
 
     [SerializeField]
     bool canBePickedUp;
     [SerializeField]
     bool objectHeld = false;
 
-    public bool destructable;
-    bool destructableThrown;
-    [SerializeField] bool containsItem;
-    public ParticleSystem destroyParticle;
-
     //CarryManager manager;
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = this.GetComponent<Rigidbody>();
         manager = FindObjectOfType<CarryManager>();
         carryPosition = GameObject.Find("Carry Position").transform;
-
-        if (destructable)
-        {
-            containsItem = (Random.value > 0.5f);
-        }
     }
 
     // Update is called once per frame
@@ -47,17 +36,32 @@ public class PickUpHandler : MonoBehaviour
         
         if (manager.isCarrying == false)
         {
-            canBePickedUp = Physics.CheckSphere(transform.position, pickUpRange, isPlayer);
+            canBePickedUp = Physics.CheckSphere(transform.position, pickUpRange, isCarry);
         }
 
         if (manager.isCarrying == false)
         {
             if (Input.GetKeyDown(KeyCode.E) && canBePickedUp)
             {
-                this.gameObject.transform.position = carryPosition.transform.position;
-                this.gameObject.transform.SetParent(carryPosition);
+                Collider[] col = Physics.OverlapSphere(transform.position, pickUpRange, isCarry);
+                float closest = pickUpRange + 1;
+
+                for (int i = 0; i < col.Length; i++)
+                {
+                    float dist = Vector3.Distance(col[i].transform.position, transform.position);
+                    if (dist <= closest)
+                    {
+                        closest = dist;
+                        heldItem = col[i].gameObject;
+                        //break;
+                    }
+                }
+
+                heldItem.transform.position = carryPosition.transform.position;
+                heldItem.transform.SetParent(carryPosition);
                 //this.gameObject.layer = 10;
 
+                rb = heldItem.GetComponent<Rigidbody>();
                 rb.velocity = new Vector3(0, 0, 0);
                 rb.useGravity = false;
 
@@ -68,8 +72,8 @@ public class PickUpHandler : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R) && manager.isCarrying == true && objectHeld)
         {
-            this.gameObject.transform.position = carryPosition.transform.position;
-            this.gameObject.transform.parent = null;
+            heldItem.gameObject.transform.position = carryPosition.transform.position;
+            heldItem.gameObject.transform.parent = null;
             //this.gameObject.layer = 0;
 
             rb.useGravity = true;
@@ -78,39 +82,18 @@ public class PickUpHandler : MonoBehaviour
             objectHeld = false;
             manager.isCarrying = false;
 
-            if (destructable)
+            if (heldItem.GetComponent<DestructableObject>())
             {
-                destructableThrown = true;
+                heldItem.GetComponent<DestructableObject>().thrown = true;
                 rb.velocity += Vector3.up * Physics2D.gravity.y * (2.5f - 1) * Time.deltaTime;
             }
+
+            heldItem = null;
         }
 
         if (manager.isCarrying == true && objectHeld)
         {
-            this.gameObject.transform.position = carryPosition.transform.position;
-        }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (destructableThrown)
-        {
-            if (collision.collider.CompareTag("Enemy"))
-            {
-                collision.collider.GetComponent<Enemy>().health -= 1;
-            }
-
-            if (containsItem)
-            {
-                int itemToDrop = Random.Range(0, itemDrop.Length);
-                GameObject item = Instantiate(itemDrop[itemToDrop], this.transform);
-                item.transform.parent = null;
-            }
-
-            Transform particlePos = this.transform;
-            ParticleSystem particle = Instantiate(destroyParticle, particlePos);
-            particle.transform.parent = null;
-            Destroy(this.gameObject);
+            heldItem.gameObject.transform.position = carryPosition.transform.position;
         }
     }
 

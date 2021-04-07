@@ -6,15 +6,19 @@ public class Building : MonoBehaviour
 {
 
     float baseDamage;
-    public float damageMultiplier = 2;
-
+    public float damageMultiplier = 2.5f;
+    
     public float buildingRange = 5;
+    
+    float playerDist;
+    public Transform playerTransform;
+
     public LayerMask isPlayer;
 
     [SerializeField]
     bool withinProx;
     [SerializeField]
-    bool recievedBuff;
+    static bool recievedBuff;
 
     [SerializeField]
     Building[] buildings;
@@ -25,7 +29,8 @@ public class Building : MonoBehaviour
     void Start()
     {
         weapon = FindObjectOfType<WeaponCollision>();
-        baseDamage = weapon.attackDamage;
+        baseDamage = WeaponCollision.attackDamage;
+        //baseDamage = weapon.attackDamage;
 
         buildings = FindObjectsOfType<Building>();
 
@@ -35,41 +40,43 @@ public class Building : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Mathf.Clamp(WeaponCollision.attackDamage, 1, 2);
+
         withinProx = Physics.CheckSphere(transform.position, buildingRange, isPlayer);
 
         if (withinProx && !recievedBuff)
         {
-            weapon.attackDamage *= damageMultiplier;
+            //Collider[] col = Physics.OverlapSphere(transform.position, buildingRange, isPlayer);
+            //playerTransform = col[0].transform;
+
+            WeaponCollision.attackDamage *= damageMultiplier;
             recievedBuff = true;
         }
 
         if (recievedBuff)
         {
-
-        }
-
-        //Need to check if within any other buildings, a for loop
-
-        if (!withinProx)
-        {
-            buildings = FindObjectsOfType<Building>();
-            bool withinProxOfOthers = false;
-            for (int i = 0; i < buildings.Length; i++)
+            playerDist = Vector3.Distance(transform.position, playerTransform.transform.position);
+            if (playerDist > buildingRange)
             {
-                if (buildings[i].withinProx)
+                buildings = FindObjectsOfType<Building>();
+                bool withinProxOfOthers = false;
+                for (int i = 0; i < buildings.Length; i++)
                 {
-                    withinProxOfOthers = true;
+                    if (buildings[i].withinProx)
+                    {
+                        withinProxOfOthers = true;
+                        break;
+                    }
+                }
+
+                if (withinProxOfOthers == false)
+                {
+                    WeaponCollision.attackDamage = baseDamage;
+                    recievedBuff = false;
                 }
             }
-
-            if (withinProxOfOthers == false)
-            {
-                weapon.attackDamage = baseDamage;
-                recievedBuff = false;
-            }
-            //weapon.attackDamage = baseDamage;
-            //recievedBuff = false;
         }
+
     }
 
     private void OnDrawGizmos()

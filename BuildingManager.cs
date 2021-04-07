@@ -8,6 +8,8 @@ public class BuildingManager : MonoBehaviour
     public Building[] buildingPrefabs;
     public ResourceManager rm;
 
+    public bool recievedDamageBuff;
+
     // Start is called before the first frame update
     void Start()
     {

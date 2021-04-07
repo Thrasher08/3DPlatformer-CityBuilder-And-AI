@@ -6,7 +6,13 @@ using DG.Tweening;
 public class WeaponCollision : MonoBehaviour
 {
 
-    public float attackDamage = 1;
+    public static float attackDamage = 1;
+    public float test;
+
+    private void Update()
+    {
+        test = attackDamage;
+    }
 
     private void OnTriggerEnter(Collider other)
     {
