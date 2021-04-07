@@ -7,8 +7,11 @@ public class PickUpHandler : MonoBehaviour
     public Transform carryPosition;
 
     Rigidbody rb;
+    CarryManager manager;
 
     public float throwForce = 300;
+
+    public GameObject[] itemDrop;
 
     public float pickUpRange = 5;
     public LayerMask isPlayer;
@@ -16,10 +19,11 @@ public class PickUpHandler : MonoBehaviour
     [SerializeField]
     bool canBePickedUp;
     [SerializeField]
-    bool isCarrying = false;
+    bool objectHeld = false;
 
     public bool destructable;
     bool destructableThrown;
+    [SerializeField] bool containsItem;
     public ParticleSystem destroyParticle;
 
     //CarryManager manager;
@@ -28,20 +32,25 @@ public class PickUpHandler : MonoBehaviour
     void Start()
     {
         rb = this.GetComponent<Rigidbody>();
-        //manager = FindObjectOfType<CarryManager>();
+        manager = FindObjectOfType<CarryManager>();
         carryPosition = GameObject.Find("Carry Position").transform;
+
+        if (destructable)
+        {
+            containsItem = (Random.value > 0.5f);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         
-        if (isCarrying == false)
+        if (manager.isCarrying == false)
         {
             canBePickedUp = Physics.CheckSphere(transform.position, pickUpRange, isPlayer);
         }
 
-        if (isCarrying == false)
+        if (manager.isCarrying == false)
         {
             if (Input.GetKeyDown(KeyCode.E) && canBePickedUp)
             {
@@ -52,11 +61,12 @@ public class PickUpHandler : MonoBehaviour
                 rb.velocity = new Vector3(0, 0, 0);
                 rb.useGravity = false;
 
-                isCarrying = true;
+                objectHeld = true;
+                manager.isCarrying = true;
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && isCarrying == true)
+        if (Input.GetKeyDown(KeyCode.R) && manager.isCarrying == true && objectHeld)
         {
             this.gameObject.transform.position = carryPosition.transform.position;
             this.gameObject.transform.parent = null;
@@ -65,16 +75,17 @@ public class PickUpHandler : MonoBehaviour
             rb.useGravity = true;
             rb.AddForce((carryPosition.forward + carryPosition.up) * throwForce);
 
-            isCarrying = false;
+            objectHeld = false;
+            manager.isCarrying = false;
 
             if (destructable)
             {
-                destructableThrown = Physics.CheckSphere(transform.position, pickUpRange);
+                destructableThrown = true;
                 rb.velocity += Vector3.up * Physics2D.gravity.y * (2.5f - 1) * Time.deltaTime;
             }
         }
 
-        if (isCarrying == true)
+        if (manager.isCarrying == true && objectHeld)
         {
             this.gameObject.transform.position = carryPosition.transform.position;
         }
@@ -84,6 +95,18 @@ public class PickUpHandler : MonoBehaviour
     {
         if (destructableThrown)
         {
+            if (collision.collider.CompareTag("Enemy"))
+            {
+                collision.collider.GetComponent<Enemy>().health -= 1;
+            }
+
+            if (containsItem)
+            {
+                int itemToDrop = Random.Range(0, itemDrop.Length);
+                GameObject item = Instantiate(itemDrop[itemToDrop], this.transform);
+                item.transform.parent = null;
+            }
+
             Transform particlePos = this.transform;
             ParticleSystem particle = Instantiate(destroyParticle, particlePos);
             particle.transform.parent = null;

@@ -7,6 +7,9 @@ public class Wood : MonoBehaviour
 
     public float health = 5;
     public int resourceValue = 10;
+
+    public ParticleSystem destroyParticle;
+
     ResourceManager rm;
 
     // Start is called before the first frame update
@@ -21,7 +24,10 @@ public class Wood : MonoBehaviour
         if (health <= 0)
         {
             rm.woodResource += resourceValue;
-            this.gameObject.SetActive(false);
+            Transform particlePos = this.transform;
+            ParticleSystem particle = Instantiate(destroyParticle, particlePos);
+            particle.transform.parent = null;
+            Destroy(this.gameObject);
         }
     }
 }

@@ -27,6 +27,8 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     bool canAttack = true;
 
+    public ParticleSystem destroyParticle;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -49,23 +51,24 @@ public class Enemy : MonoBehaviour
         if (playerInAttackRange)
         {
             agent.SetDestination(transform.position);
-            Vector3 a = new Vector3(targetLocation.position.x, 1, targetLocation.position.z);
-            transform.LookAt(a);
+            Vector3 targetLookOffset = new Vector3(targetLocation.position.x, 1, targetLocation.position.z);
+            transform.LookAt(targetLookOffset);
             
             if (canAttack)
             {
-                //anim.SetBool("attacking", true);
                 anim.SetTrigger("attack");
                 canAttack = false;
                 attackTimer = attackCooldown;
             }
 
-            //Invoke(nameof (ResetAttack), attackCooldown);
         }
 
         if (health <= 0)
         {
-            this.gameObject.SetActive(false);
+            Transform particlePos = this.transform;
+            ParticleSystem particle = Instantiate(destroyParticle, particlePos);
+            particle.transform.parent = null;
+            Destroy(this.gameObject);
         }
 
         attackTimer -= Time.deltaTime;

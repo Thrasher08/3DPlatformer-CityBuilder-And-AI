@@ -14,24 +14,18 @@ public class WeaponCollision : MonoBehaviour
         {
             other.GetComponent<Enemy>().health -= attackDamage;
             other.transform.DOShakeRotation(0.5f, 10, 8, 70);
-            //other.gameObject.SetActive(false);
-            //onHit.Invoke(other.transform);
         }
 
         if (other.CompareTag("Resource"))
         {
             other.GetComponent<Wood>().health -= attackDamage;
             other.transform.DOShakeRotation(0.5f, 10, 8, 70);
-            //other.gameObject.SetActive(false);
-            //onHit.Invoke(other.transform);
         }
 
         if (other.CompareTag("Player"))
         {
             //other.GetComponent<Enemy>().health -= 1;
             other.transform.DOShakeRotation(0.1f, 10, 8, 70);
-            //other.gameObject.SetActive(false);
-            //onHit.Invoke(other.transform);
         }
     }
 

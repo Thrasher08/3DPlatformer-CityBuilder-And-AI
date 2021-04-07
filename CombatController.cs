@@ -24,18 +24,18 @@ public class CombatController : MonoBehaviour
             //swordCol.enabled = true;
         }
 
-        if (Input.GetKeyUp(KeyCode.LeftShift))
-        {
+        //if (Input.GetKeyUp(KeyCode.LeftShift))
+        //{
             //anim.SetBool("attacking", false);
             //swordCol.enabled = false;
-        }
+        //}
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy"))
-        {
+        //if (other.CompareTag("Enemy"))
+        //{
             //targets.Add(other.transform);
-        }
+        //}
     }
 }

@@ -2,15 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using DG.Tweening;
 
 public class Followers : MonoBehaviour
 {
 
-    public Transform targetLocation;
+    Transform targetLocation;
     NavMeshAgent agent;
+
+    float jobRadius = 1.5f;
 
     bool assignedJob = false;
     bool jobInSight = false;
+
+    public bool allowFollow = false;
 
     BuildingManager buildManager;
 
@@ -19,24 +24,15 @@ public class Followers : MonoBehaviour
     {
         agent = this.GetComponent<NavMeshAgent>();
         buildManager = FindObjectOfType<BuildingManager>();
+        targetLocation = GameObject.Find("Follow Position").transform;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!assignedJob)
+        if (!assignedJob && allowFollow)
         {
             agent.SetDestination(targetLocation.transform.position);
-
-            if (Input.GetKeyDown(KeyCode.V))
-            {
-                StartCoroutine(FindJob());
-            }
-
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                StartCoroutine(BuildJob());
-            }
         }
 
     }
@@ -46,44 +42,54 @@ public class Followers : MonoBehaviour
         return new WaitUntil(() => !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance);
     }
 
-    IEnumerator FindJob()
+    public IEnumerator FindJob()
     {
         assignedJob = true;
+        Collider target = new Collider();
+
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
             agent.SetDestination(hit.point);
         }
+
         yield return WaitForNavMesh();
+
         Collider[] col = Physics.OverlapSphere(transform.position, 5f);
         Vector3 newJobDest = new Vector3();
+
         for (int i = 0; i < col.Length; i++)
         {
-            if (col[i].CompareTag("Resource"))
+            if (col[i].CompareTag("Resource") || col[i].CompareTag("Enemy"))
             {
                 jobInSight = true;
                 newJobDest = col[i].transform.position;
+                target = col[i];
+                break;
             }
         }
+
         if (jobInSight)
         {
+            Vector2 randomOffset = Random.insideUnitCircle.normalized * jobRadius;
+            newJobDest.x += randomOffset.x;
+            newJobDest.z += randomOffset.y;
+
             agent.SetDestination(newJobDest);
             yield return WaitForNavMesh();
             yield return new WaitForSeconds(2);
 
-            Vector3 buildingLocation = new Vector3(newJobDest.x, newJobDest.y * 2, newJobDest.z);
+            yield return StartCoroutine(AttackJob(target));
 
-            Building building;
-            building = Instantiate(buildManager.buildingPrefabs[0], buildingLocation, Quaternion.identity);
-            //building.GetComponent<Rigidbody>().useGravity = false;
             yield return new WaitForSeconds(1);
-            //building.GetComponent<Rigidbody>().useGravity = true;
+
         }
+
         assignedJob = false;
     }
 
-    IEnumerator BuildJob()
+    public IEnumerator BuildJob()
     {
         assignedJob = true;
         RaycastHit hit;
@@ -99,11 +105,52 @@ public class Followers : MonoBehaviour
         Vector3 buildingLocation = new Vector3(hit.point.x, agent.transform.position.y * 2, hit.point.z);
         
         Building building;
-        building = Instantiate(buildManager.buildingPrefabs[0], buildingLocation, Quaternion.identity);
-
+        if (buildManager.rm.woodResource >= 10)
+        {
+            building = Instantiate(buildManager.buildingPrefabs[0], buildingLocation, Quaternion.identity);
+            buildManager.rm.woodResource -= 10;
+        }
+        
         yield return new WaitForSeconds(1);
 
         assignedJob = false;
+    }
+
+    IEnumerator AttackJob(Collider target)
+    {
+        if (target.CompareTag("Resource"))
+        {
+            float totalHealth = target.GetComponent<Wood>().health - 1;
+
+            for (int i = 0; i <= totalHealth; i++)
+            {
+                target.GetComponent<Wood>().health -= 1;
+                target.transform.DOShakeRotation(0.5f, 10, 8, 70);
+                yield return new WaitForSeconds(1);
+            }
+        }
+        else if (target.CompareTag("Enemy"))
+        {
+            float totalHealth = target.GetComponent<Enemy>().health - 1;
+
+            for (int i = 0; i <= totalHealth; i++)
+            {
+                // If the enemy moves out of range move towards it
+                if (Vector3.Distance(target.transform.position, agent.transform.position) >= jobRadius)
+                {
+                    agent.SetDestination(target.transform.position);
+                    yield return WaitForNavMesh();
+                }
+                target.GetComponent<Enemy>().health -= 1;
+                target.transform.DOShakeRotation(0.5f, 10, 8, 70);
+                yield return new WaitForSeconds(1);
+            }
+        }
+        else
+        {
+            yield return new WaitForSeconds(1);
+        }
+
     }
 
     private void OnDrawGizmos()

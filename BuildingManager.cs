@@ -6,7 +6,7 @@ public class BuildingManager : MonoBehaviour
 {
 
     public Building[] buildingPrefabs;
-    ResourceManager rm;
+    public ResourceManager rm;
 
     // Start is called before the first frame update
     void Start()
@@ -17,7 +17,7 @@ public class BuildingManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        RaycastHit hit;
+        /*RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Input.GetMouseButtonDown(1))
         {
@@ -32,6 +32,6 @@ public class BuildingManager : MonoBehaviour
 
             }
 
-        }
+        }*/
     }
 }

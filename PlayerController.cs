@@ -77,9 +77,12 @@ public class PlayerController : MonoBehaviour
 
         finalDirection = new Vector3(combinedInput.normalized.x, 0, combinedInput.normalized.z);
 
-        Quaternion playerRot = Quaternion.LookRotation(finalDirection);
-        Quaternion targetRotation = Quaternion.Slerp(transform.rotation, playerRot, Time.fixedDeltaTime * inputMagnitude * 1.5f);
-        transform.rotation = targetRotation;
+        if (inputMagnitude != 0)
+        {
+            Quaternion playerRot = Quaternion.LookRotation(finalDirection);
+            Quaternion targetRotation = Quaternion.Slerp(transform.rotation, playerRot, Time.fixedDeltaTime * inputMagnitude * 1.5f);
+            transform.rotation = targetRotation;
+        }
 
         FallGravity();
 
@@ -176,15 +179,24 @@ public class PlayerController : MonoBehaviour
         coyoteJump = false;
     }
 
-    // Collect Coin
-    void OnTriggerEnter2D(Collider2D other)
+    // Collect Collectable
+    void OnTriggerEnter(Collider other)
     {
 
-        if (other.gameObject.CompareTag("Coin"))
+        if (other.CompareTag("Collectable"))
         {
-            //scoreTracker.updateScore(scoreTracker.getCoinScore());
-            //string currentScore = scoreTracker.getScore().ToString();
-            //scoreTracker.scoreValue.SetText(currentScore);
+            ResourceManager rm = FindObjectOfType<ResourceManager>();
+
+            if (other.GetComponent<CollectableResource>().type == resourceType.wood)
+            {
+                rm.woodResource += other.GetComponent<CollectableResource>().resourceValue;
+            }
+
+            if (other.GetComponent<CollectableResource>().type == resourceType.stone)
+            {
+                rm.stoneResource += other.GetComponent<CollectableResource>().resourceValue;
+            }
+
             Destroy(other.gameObject);
         }
     }
