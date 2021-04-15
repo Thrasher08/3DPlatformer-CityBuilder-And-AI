@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
@@ -44,6 +45,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Visual")]
     public Animator anim;
+    public GameObject characterVisual;
     public ParticleSystem jumpParticle;
     public ParticleSystem airTrailParticle;
     public ParticleSystem landParticle;
@@ -104,6 +106,13 @@ public class PlayerController : MonoBehaviour
         //Play particle on the frame of landing
         if (!groundTouch && isGrounded)
         {
+            //characterVisual.transform.DOShakeScale(0.3f, 1, 8, 70).SetEase(Ease.Linear);
+            if (characterVisual.transform.localScale != new Vector3(1, 1, 1))
+            {
+                 characterVisual.transform.localScale = new Vector3(1, 1, 1);
+            }
+            characterVisual.transform.DOPunchScale(new Vector3(-0.1f, -0.175f, -0.1f), 0.3f, 0, 0);
+            transform.DORewind();
             landParticle.Play();
         }
 
@@ -146,6 +155,13 @@ public class PlayerController : MonoBehaviour
         jumpParticle.Play();
         airTrailParticle.Play();
         rb.velocity += Vector3.up * jumpForce;
+        //characterVisual.transform.DOShakeScale(0.3f, 1, 8, 70).SetEase(Ease.Linear);
+        if (characterVisual.transform.localScale != new Vector3(1, 1, 1))
+        {
+            characterVisual.transform.localScale = new Vector3(1, 1, 1);
+        }
+        characterVisual.transform.DOPunchScale(new Vector3(0.1f, 0.2f, 0.1f), 0.3f, 0, 0);
+        transform.DORewind();
         isJumping = false;
     }
 

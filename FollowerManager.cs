@@ -14,11 +14,14 @@ public class FollowerManager : MonoBehaviour
     public float commandRange = 3.25f;
     Transform playerPos;
 
+    Color baseColor;
+
     // Start is called before the first frame update
     void Start()
     {
         followers = FindObjectsOfType<Followers>();
         playerPos = FindObjectOfType<PlayerController>().transform;
+        baseColor = selectionPoint.gameObject.GetComponent<Renderer>().material.GetColor("_HologramColor");
     }
 
     // Update is called once per frame
@@ -60,6 +63,7 @@ public class FollowerManager : MonoBehaviour
 
     void allowFollow()
     {
+        selectionPoint.gameObject.GetComponent<Renderer>().material.SetColor("_HologramColor", baseColor);
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
@@ -86,6 +90,7 @@ public class FollowerManager : MonoBehaviour
     // Any followers within range will stop following
     void disableFollow()
     {
+        selectionPoint.gameObject.GetComponent<Renderer>().material.SetColor("_HologramColor", Color.red);
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
@@ -95,6 +100,7 @@ public class FollowerManager : MonoBehaviour
                 if (Vector3.Distance(followers[i].transform.position, hit.point) <= selectionRange)
                 {
                     followers[i].allowFollow = false;
+                    followers[i].agent.SetDestination(followers[i].transform.position);
                 }
             }
         }

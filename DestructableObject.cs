@@ -11,11 +11,13 @@ public class DestructableObject : MonoBehaviour
     bool containsItem;
     public GameObject[] itemDrop;
     public ParticleSystem destroyParticle;
+    CameraShake cShake;
 
     private void Start()
     {
         handler = FindObjectOfType<PickUpHandler>();
         containsItem = (Random.value > 0.5f);
+        cShake = FindObjectOfType<CameraShake>();
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -42,6 +44,7 @@ public class DestructableObject : MonoBehaviour
         Transform particlePos = this.transform;
         ParticleSystem particle = Instantiate(destroyParticle, particlePos);
         particle.transform.parent = null;
+        StartCoroutine(cShake.Shake(1.4f));
         Destroy(this.gameObject);
     }
 }

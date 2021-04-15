@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using Cinemachine;
 
 public class WeaponCollision : MonoBehaviour
 {
 
     public static float attackDamage = 1;
     public float test;
+
+    CameraShake cShake;
+
+    private void Start()
+    {
+        cShake = FindObjectOfType<CameraShake>();
+    }
 
     private void Update()
     {
@@ -19,7 +27,9 @@ public class WeaponCollision : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             other.GetComponent<Enemy>().health -= attackDamage;
-            other.transform.DOShakeRotation(0.5f, 10, 8, 70);
+            other.GetComponent<Enemy>().visual.transform.DOShakeRotation(0.5f, 10, 8, 70);
+            StartCoroutine(cShake.Shake(0.2f));
+            //other.transform.DOShakeRotation(0.5f, 10, 8, 70);
         }
 
         if (other.CompareTag("Resource"))

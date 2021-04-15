@@ -8,7 +8,7 @@ public class Followers : MonoBehaviour
 {
 
     Transform targetLocation;
-    NavMeshAgent agent;
+    public NavMeshAgent agent;
 
     float jobRadius = 1.5f;
 
@@ -18,6 +18,7 @@ public class Followers : MonoBehaviour
     public bool allowFollow = false;
 
     BuildingManager buildManager;
+    public ParticleSystem missionPointParticle;
 
     // Start is called before the first frame update
     void Start()
@@ -52,6 +53,7 @@ public class Followers : MonoBehaviour
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
             agent.SetDestination(hit.point);
+            Instantiate(missionPointParticle, hit.point, Quaternion.identity);
         }
 
         yield return WaitForNavMesh();
@@ -97,6 +99,7 @@ public class Followers : MonoBehaviour
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
             agent.SetDestination(hit.point);
+            Instantiate(missionPointParticle, hit.point, Quaternion.identity);
         }
 
         yield return WaitForNavMesh();

@@ -59,7 +59,7 @@ public class PickUpHandler : MonoBehaviour
 
                 heldItem.transform.position = carryPosition.transform.position;
                 heldItem.transform.SetParent(carryPosition);
-                //this.gameObject.layer = 10;
+                heldItem.gameObject.layer = 12;
 
                 rb = heldItem.GetComponent<Rigidbody>();
                 rb.velocity = new Vector3(0, 0, 0);
@@ -74,7 +74,7 @@ public class PickUpHandler : MonoBehaviour
         {
             heldItem.gameObject.transform.position = carryPosition.transform.position;
             heldItem.gameObject.transform.parent = null;
-            //this.gameObject.layer = 0;
+            heldItem.gameObject.layer = 10;
 
             rb.useGravity = true;
             rb.AddForce((carryPosition.forward + carryPosition.up) * throwForce);
